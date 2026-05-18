@@ -4,7 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 import torch
 from transformers import CLIPProcessor, CLIPModel
 from PIL import Image
-import io, json, os, uuid
+import io
+import json
+import os
+import traceback
+import uuid
 from datetime import datetime
 
 app = FastAPI()
@@ -67,14 +71,27 @@ if not os.path.exists(DECK_FILE):
         json.dump([], f)
 print(f"📁 Deck file: {DECK_FILE}")
 
+def load_deck():
+    try:
+        with open(DECK_FILE, "r") as f:
+            content = f.read().strip()
+            if not content:
+                return []
+            return json.loads(content)
+    except (json.JSONDecodeError, FileNotFoundError):
+        return []
+
+
+def save_deck(deck):
+    with open(DECK_FILE, "w") as f:
+        json.dump(deck, f, indent=2)
+
+
 def save_pokemon(pkmn_data):
     try:
-        with open(DECK_FILE, "r+") as f:
-            deck = json.load(f)
-            deck.append(pkmn_data)
-            f.seek(0)
-            json.dump(deck, f, indent=2)
-            f.truncate()
+        deck = load_deck()
+        deck.append(pkmn_data)
+        save_deck(deck)
         print(f"✅ Carta guardada en {DECK_FILE}")
     except Exception as e:
         print(f"❌ Error guardando: {e}")
@@ -146,7 +163,6 @@ async def upload_drawing(file: UploadFile = File(...)):
     
     except Exception as e:
         print(f"❌ Error: {str(e)}")
-        import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -154,8 +170,7 @@ async def upload_drawing(file: UploadFile = File(...)):
 async def get_deck():
     try:
         print(f"📖 Leyendo deck desde: {DECK_FILE}")
-        with open(DECK_FILE, "r") as f:
-            deck = json.load(f)
+        deck = load_deck()
         print(f"✅ Deck tiene {len(deck)} cartas")
         return {"total_cards": len(deck), "cards": deck}
     except Exception as e:
