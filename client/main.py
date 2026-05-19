@@ -1,7 +1,9 @@
+import os
+
 import flet as ft
 import httpx
 
-SERVER_URL = "http://192.168.100.65:8001"
+SERVER_URL = os.environ.get("SERVER_URL", "http://localhost:8001")
 
 
 def main(page: ft.Page):
