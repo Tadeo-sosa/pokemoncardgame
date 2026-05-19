@@ -37,11 +37,12 @@ def main(page: ft.Page):
     # ---------------- FILE PICKER ----------------
     file_picker = ft.FilePicker()
 
-    page.overlay.append(file_picker)
-
-    def on_file_selected(e: ft.FilePickerResultEvent):
-        if e.files:
-            file_path = e.files[0].path
+    async def pick_file(e):
+        files = await file_picker.pick_files(
+            allow_multiple=False
+        )
+        if files:
+            file_path = files[0].path
 
             selected_file["path"] = file_path
 
@@ -53,13 +54,6 @@ def main(page: ft.Page):
             send_btn.disabled = False
 
             page.update()
-
-    file_picker.on_result = on_file_selected
-
-    async def pick_file(e):
-        await file_picker.pick_files(
-            allow_multiple=False
-        )
 
     # ---------------- ENVIAR ----------------
     async def send_image(e):
