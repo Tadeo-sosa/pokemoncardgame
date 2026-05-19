@@ -37,8 +37,6 @@ def main(page: ft.Page):
     # ---------------- FILE PICKER ----------------
     file_picker = ft.FilePicker()
 
-    page.overlay.append(file_picker)
-
     async def pick_file(e):
         files = await file_picker.pick_files(
             allow_multiple=False
